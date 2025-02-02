@@ -11,7 +11,8 @@ pub fn get_connection(db_path: Option<&str>) -> Result<Connection> {
         &format!(
             "CREATE TABLE IF NOT EXISTS {} (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL
+            name TEXT NOT NULL,
+            gender TEXT NOT NULL
         )",
             PLAYER_TABLE
         ),

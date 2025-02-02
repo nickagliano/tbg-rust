@@ -7,7 +7,7 @@ use tbg::Player;
 fn test_save_player() {
     let conn = &test_utils::setup_test_db().conn;
 
-    let player = Player::new("Test Player".to_string());
+    let player = Player::new("Test Player".to_string(), tbg::models::player::Gender::Male);
 
     // Save the player to the in-memory database
     player.save(&conn).unwrap();
@@ -33,12 +33,14 @@ fn test_load_no_player() {
 fn test_load_player() {
     let conn = &test_utils::setup_test_db().conn;
 
-    let player = Player::new("Test Player".to_string());
+    let player = Player::new("Test Player".to_string(), tbg::models::player::Gender::Male);
 
     player.save(&conn).unwrap();
 
     // Load the player back from the database
     let loaded_player = Player::load(&conn).unwrap();
     assert!(loaded_player.is_some());
-    assert_eq!(loaded_player.unwrap().name, "Test Player");
+    let unwrapped_loaded_player = loaded_player.unwrap();
+    assert_eq!(unwrapped_loaded_player.name, "Test Player");
+    assert_eq!(unwrapped_loaded_player.gender.to_db_string(), "male");
 }
