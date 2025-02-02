@@ -1,5 +1,5 @@
 use crate::db::PLAYER_TABLE;
-use rusqlite::{params, Connection, Result}; // Import the constant
+use rusqlite::{params, Connection, Result};
 
 #[derive(Debug, Clone)]
 pub struct Player {

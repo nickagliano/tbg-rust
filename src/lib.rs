@@ -63,7 +63,7 @@ pub fn start_game() -> Result<(), Box<dyn Error>> {
             let name = name.trim().to_string();
 
             let new_player = Player::new(name.clone());
-            new_player.save(&conn)?; // Saving to the file-based database
+            new_player.save(&conn)?;
 
             clear_console();
 
