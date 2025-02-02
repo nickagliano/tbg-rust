@@ -18,7 +18,7 @@ At the core of The Book Game is a turned-based strategy game, where players must
 
 ### Clone the Repository
 ```sh
-git clone https://github.com/yourusername/tbg.git
+git clone https://github.com/nickagliano/tbg.git
 cd tbg
 ```
 
