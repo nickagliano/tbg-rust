@@ -3,7 +3,10 @@ pub mod models;
 pub use models::player::Gender;
 pub use models::player::Player;
 pub mod terminal_utils;
-pub use terminal_utils::{clear_console, get_input, prompt_enter_to_continue, simulate_typing};
+pub use terminal_utils::{
+    action_required, clear_console, get_input, p, prompt_enter_to_continue, reset_cursor,
+    simulate_typing,
+};
 pub mod test_utils;
 use std::error::Error;
 
@@ -62,30 +65,30 @@ pub fn print_menu<T: std::fmt::Display>(
     selected_index: usize,
     use_simulate_typing: bool,
 ) {
-    clear_console();
+    clear_console(None);
 
     let mut stdout = io::stdout();
 
     if use_simulate_typing {
         simulate_typing(&message);
     } else {
-        println!("{}", message)
+        p(&format!("{}", message))
     }
 
-    // Move cursor back to the beginning of the line after printing
-    write!(stdout, "{}\n", cursor::Goto(1, 1)).unwrap();
+    stdout = reset_cursor(stdout);
 
     // Loop through options and highlight the selected one
     for (i, option) in options.iter().enumerate() {
         if i == selected_index {
             // Highlight the selected option
-            write!(stdout, "> {}", option).unwrap();
+            action_required(&format!("> {}", option))
         } else {
             // Print unselected options without extra indentation
-            write!(stdout, "  {}", option).unwrap();
+            action_required(&format!("  {}", option))
         }
 
         // Move cursor back to the beginning of the line after printing
+        // FIXME need to abstract this into reset_cursor. target + padding or something...
         write!(stdout, "{}\n", cursor::Goto(1, i as u16 + 2)).unwrap();
         stdout.flush().unwrap(); // Flush after each line to update the display immediately
     }
@@ -104,7 +107,7 @@ pub fn start_game() -> Result<(), Box<dyn Error>> {
         }
     };
 
-    clear_console();
+    clear_console(None);
 
     let _player = match Player::load(&conn)? {
         Some(player) => {
@@ -125,7 +128,7 @@ pub fn start_game() -> Result<(), Box<dyn Error>> {
             let new_player = Player::new(name.clone(), models::player::Gender::Male);
             new_player.save(&conn)?;
 
-            clear_console();
+            clear_console(None);
 
             simulate_typing(&format!(
                 "Hello, {}. Welcome to the adventure!\n",
