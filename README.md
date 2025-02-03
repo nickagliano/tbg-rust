@@ -47,6 +47,7 @@ tbg/
 │   ├── db/              # Database connection and management
 │   ├── models/          # Game data structures (e.g., Player)
 │   ├── test_utils/      # Utilities for testing
+├── tests/               # Tests
 ├── Cargo.toml           # Rust package configuration
 ├── README.md            # Project documentation
 ```
