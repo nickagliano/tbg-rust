@@ -12,8 +12,8 @@ pub fn get_input() -> String {
     write!(
         stdout,
         "\n{}>{} {}",
-        color::Fg(color::Blue),
-        color::Fg(color::Blue),
+        color::Fg(color::LightBlue),
+        color::Fg(color::LightBlue),
         color::Fg(color::White)
     )
     .unwrap();
@@ -64,7 +64,7 @@ pub fn p(message: &str) {
     write!(
         stdout,
         "{}{}{}",
-        color::Fg(color::Green),
+        color::Fg(color::LightYellow),
         message,
         color::Fg(color::Reset)
     )
@@ -77,7 +77,7 @@ pub fn action_required(message: &str) {
     write!(
         stdout,
         "{}{}{}",
-        color::Fg(color::Blue),
+        color::Fg(color::LightBlue),
         message,
         color::Fg(color::Reset)
     )
@@ -91,7 +91,7 @@ pub fn simulate_typing(message: &str) {
     let mut stdout = io::stdout();
 
     // Set the color before starting to type
-    write!(stdout, "{}", color::Fg(color::Green)).unwrap();
+    write!(stdout, "{}", color::Fg(color::LightYellow)).unwrap();
 
     // Flush to apply the color change to the whole message
     stdout.flush().unwrap();
