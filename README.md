@@ -41,15 +41,18 @@ Upon launching the game, you will be prompted to either continue an existing adv
 ## Project Structure
 ```
 tbg/
+├── saves/                 # For storing save files (sqlite databases)
 ├── src/
-│   ├── main.rs          # Entry point of the game
-│   ├── lib.rs           # Game logic and core functionality
-│   ├── db/              # Database connection and management
-│   ├── models/          # Game data structures (e.g., Player)
-│   ├── test_utils/      # Utilities for testing
-├── tests/               # Tests
-├── Cargo.toml           # Rust package configuration
-├── README.md            # Project documentation
+│   ├── db/                # Database connection and management
+│   ├── models/            # Game data structures (e.g., Player, GameState)  
+│   ├── args.rs            # For parsing command-line input (mostly for development purposes)
+│   ├── lib.rs             # Game logic and core functionality
+│   ├── main.rs            # Entry point of the game
+│   ├── terminal_utils.rs  # For all things manipulating the terminal
+│   ├── test_utils/        # Utilities for testing
+├── tests/                 # Tests
+├── Cargo.toml             # Rust package configuration
+├── README.md              # Project documentation
 ```
 
 ## Dependencies
