@@ -8,3 +8,4 @@
 - [ ] Add a title screen / landing page
   - [ ] Add an ASCII title for THE BOOK GAME
   - [ ] Let users choose to continue, or create a new save file at the title screen
+- [ ] Add docs and Doc-tests

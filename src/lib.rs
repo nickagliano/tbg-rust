@@ -113,6 +113,8 @@ pub fn start_game() -> Result<(), Box<dyn Error>> {
 
     clear_console(None);
 
+    let mut is_new_player = false; // Track whethe ra player was created in current session
+
     // Start game by either welcoming back player, or
     // guiding them through the intro
     match Player::load(&conn)? {
@@ -124,6 +126,8 @@ pub fn start_game() -> Result<(), Box<dyn Error>> {
             player
         }
         None => {
+            is_new_player = true; // New player is being created
+
             simulate_typing("Welcome to the wonderful world of The Book Game!");
             prompt_enter_to_continue();
 
@@ -160,30 +164,43 @@ pub fn start_game() -> Result<(), Box<dyn Error>> {
     // Reload player
     let mut player = Player::load(&conn)?.unwrap();
 
-    let game_state = GameState::load_for_player(&conn, player.id)
+    let mut game_state = GameState::load_for_player(&conn, player.id)
         .unwrap()
         .unwrap();
 
     prompt_enter_to_continue();
 
-    // TODO: parse current_epic...
-
-    if game_state.current_stage == "character_creation" {
-        simulate_typing("Look like you're still creating your character.");
+    // Give special message if player is returning, but never completed character creation
+    if !is_new_player && game_state.current_stage == "character_creation" {
+        simulate_typing("Looks like you're still creating your character.");
         prompt_enter_to_continue();
     }
 
-    // Start gender selection experience
-    let gender = select_gender();
+    if game_state.current_stage == "character_creation" {
+        // Start gender selection experience
+        let gender = select_gender();
 
-    // Update player's gender
-    player.gender = gender.clone();
-    player.update(&conn)?;
+        // Update player's gender
+        player.gender = gender.clone();
+        player.update(&conn)?;
 
-    // Reload player
-    player = Player::load(&conn)?.unwrap();
+        // Update game state, finished with choosing their name and gender
+        game_state.current_stage = "book_tutorial".to_string();
+        game_state.update(&conn).unwrap();
 
-    simulate_typing(&format!("\nYou selected: {}", player.gender.to_string()));
+        // Reload player
+        player = Player::load(&conn)?.unwrap();
+
+        simulate_typing(&format!("\nYou selected: {}", player.gender.to_string()));
+
+        prompt_enter_to_continue();
+    }
+
+    assert!(game_state.current_stage == "book_tutorial".to_string());
+
+    simulate_typing(
+        "Amazing.\n\nNow that we have introductions out of the way, let me show you some books.",
+    );
 
     prompt_enter_to_continue();
 
