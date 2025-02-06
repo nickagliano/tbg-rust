@@ -1,13 +1,19 @@
 use crate::db::PLAYER_TABLE;
+use chrono::NaiveDateTime;
 use rusqlite::Error as RusqliteError;
 use rusqlite::{params, Connection, Result};
 use std::fmt;
 use std::str::FromStr; // Alias for rusqlite::Error
+use uuid::Uuid; // For handling timestamps
 
 #[derive(Debug, Clone)]
 pub struct Player {
+    pub id: i32,
+    pub uuid: Uuid,
     pub name: String,
     pub gender: Gender,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Debug, Clone)]
@@ -33,6 +39,16 @@ impl Gender {
             "Male" => Gender::Male,
             "Female" => Gender::Female,
             "Choose not to specify" => Gender::Unspecified,
+            _ => Gender::Unspecified, // FIXME: I'd rather panic here.
+        }
+    }
+
+    // Convert from string to Gender enum
+    pub fn from_db_string(s: &str) -> Self {
+        match s {
+            "male" => Gender::Male,
+            "female" => Gender::Female,
+            "unspecified" => Gender::Unspecified,
             _ => Gender::Unspecified, // FIXME: I'd rather panic here.
         }
     }
@@ -78,30 +94,71 @@ impl fmt::Display for Gender {
 impl Player {
     // Create a new player instance
     pub fn new(name: String, gender: Gender) -> Self {
-        Player { name, gender }
+        Player {
+            id: 0, // DB will auto-increment this
+            uuid: Uuid::new_v4(),
+            name,
+            gender,
+            created_at: chrono::Local::now().naive_local(),
+            updated_at: chrono::Local::now().naive_local(),
+        }
     }
 
-    // Load a player from the database
-    pub fn load(conn: &Connection) -> Result<Option<Player>, RusqliteError> {
-        let mut stmt = conn.prepare(&format!(
-            "SELECT name, gender FROM {} LIMIT 1",
-            PLAYER_TABLE
-        ))?;
+    pub fn load(conn: &Connection) -> Result<Option<Self>> {
+        Self::load_most_recent(conn)
+    }
 
-        let player_iter = stmt.query_map([], |row| {
-            let name: String = row.get(0)?;
-            let gender_str: String = row.get(1)?; // Get the gender as a String
-
-            // Use `parse` to convert the gender string to the Gender enum
-            let gender: Gender = gender_str.parse().map_err(|e| {
-                // Convert the GenderParseError to a RusqliteError
-                RusqliteError::FromSqlConversionFailure(1, rusqlite::types::Type::Text, Box::new(e))
-            })?;
-
-            Ok(Player { name, gender })
+    // Load the most recent player by the updated_at field
+    pub fn load_most_recent(conn: &Connection) -> Result<Option<Self>> {
+        let mut stmt = conn.prepare(
+            "SELECT id, uuid, name, gender, created_at, updated_at FROM players ORDER BY updated_at DESC LIMIT 1",
+        )?;
+        let mut player_iter = stmt.query_map([], |row| {
+            let id: i32 = row.get(0)?;
+            let uuid: String = row.get(1)?;
+            let name: String = row.get(2)?;
+            let gender: String = row.get(3)?;
+            let created_at: NaiveDateTime = row.get(4)?;
+            let updated_at: NaiveDateTime = row.get(5)?;
+            Ok(Player {
+                id,
+                uuid: Uuid::parse_str(&uuid).unwrap(),
+                name,
+                gender: Gender::from_db_string(&gender),
+                created_at,
+                updated_at,
+            })
         })?;
 
-        // Loop through the result and return the first player found
+        if let Some(player) = player_iter.next() {
+            return Ok(Some(player?));
+        }
+
+        Ok(None)
+    }
+
+    // Load a player by UUID
+    pub fn load_by_uuid(conn: &Connection, player_uuid: &Uuid) -> Result<Option<Self>> {
+        let mut stmt = conn.prepare(
+            "SELECT id, uuid, name, gender, created_at, updated_at FROM players WHERE uuid = ?1",
+        )?;
+        let player_iter = stmt.query_map([player_uuid.to_string()], |row| {
+            let id: i32 = row.get(0)?;
+            let uuid: String = row.get(1)?;
+            let name: String = row.get(2)?;
+            let gender: String = row.get(3)?;
+            let created_at: NaiveDateTime = row.get(4)?;
+            let updated_at: NaiveDateTime = row.get(5)?;
+            Ok(Player {
+                id,
+                uuid: Uuid::parse_str(&uuid).unwrap(),
+                name,
+                gender: Gender::from_db_string(&gender), // Assuming you have a method to convert from DB string to Gender
+                created_at,
+                updated_at,
+            })
+        })?;
+
         for player in player_iter {
             return Ok(Some(player?));
         }
@@ -109,14 +166,39 @@ impl Player {
         Ok(None)
     }
 
-    pub fn save(&self, conn: &Connection) -> Result<()> {
+    // Save the player to the database
+    pub fn create(&self, conn: &Connection) -> Result<()> {
         conn.execute(
+            "INSERT INTO players (uuid, name, gender, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+            rusqlite::params![
+                self.uuid.to_string(),
+                self.name,
+                self.gender.to_db_string(),
+                self.created_at,
+                self.created_at // Default to created at
+            ],
+        )?;
+        Ok(())
+    }
+
+    pub fn update(&self, conn: &Connection) -> Result<()> {
+        let rows_updated = conn.execute(
             &format!(
-                "INSERT INTO {} (name, gender) VALUES (?1, ?2)",
+                "UPDATE {} SET gender = ?1, updated_at = ?2 WHERE name = ?3",
                 PLAYER_TABLE
             ),
-            params![self.name, self.gender.to_db_string()],
+            params![
+                self.gender.to_db_string(),
+                chrono::Local::now().naive_local(),
+                self.name
+            ],
         )?;
+
+        if rows_updated == 0 {
+            // Handle the case where no rows were updated, i.e., no player was found
+            return Err(RusqliteError::QueryReturnedNoRows);
+        }
+
         Ok(())
     }
 }

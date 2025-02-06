@@ -4,6 +4,13 @@ use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 use termion::{clear, color, cursor};
 
+struct Colors;
+impl Colors {
+    const ACTION_COLOR: color::Fg<color::Blue> = color::Fg(color::Blue);
+    const TEXT_COLOR: color::Fg<color::Yellow> = color::Fg(color::Yellow);
+    const RESET: color::Fg<color::Reset> = color::Fg(color::Reset);
+}
+
 pub fn get_input() -> String {
     let mut stdout = io::stdout();
     let mut user_input = String::new();
@@ -12,9 +19,9 @@ pub fn get_input() -> String {
     write!(
         stdout,
         "\n{}>{} {}",
-        color::Fg(color::LightBlue),
-        color::Fg(color::LightBlue),
-        color::Fg(color::White)
+        Colors::ACTION_COLOR,
+        Colors::ACTION_COLOR,
+        Colors::RESET
     )
     .unwrap();
     stdout.flush().unwrap();
@@ -61,14 +68,7 @@ pub fn prompt_enter_to_continue() {
 pub fn p(message: &str) {
     let mut stdout = io::stdout();
 
-    write!(
-        stdout,
-        "{}{}{}",
-        color::Fg(color::LightYellow),
-        message,
-        color::Fg(color::Reset)
-    )
-    .unwrap();
+    write!(stdout, "{}{}{}", Colors::TEXT_COLOR, message, Colors::RESET).unwrap();
 }
 
 pub fn action_required(message: &str) {
@@ -77,9 +77,9 @@ pub fn action_required(message: &str) {
     write!(
         stdout,
         "{}{}{}",
-        color::Fg(color::LightBlue),
+        Colors::ACTION_COLOR,
         message,
-        color::Fg(color::Reset)
+        Colors::RESET
     )
     .unwrap();
 }
@@ -91,7 +91,7 @@ pub fn simulate_typing(message: &str) {
     let mut stdout = io::stdout();
 
     // Set the color before starting to type
-    write!(stdout, "{}", color::Fg(color::LightYellow)).unwrap();
+    write!(stdout, "{}", color::Fg(color::Yellow)).unwrap();
 
     // Flush to apply the color change to the whole message
     stdout.flush().unwrap();
@@ -104,9 +104,28 @@ pub fn simulate_typing(message: &str) {
     }
 
     // Reset color after typing is complete
-    write!(stdout, "{}", color::Fg(color::Reset)).unwrap();
+    write!(stdout, "{}", Colors::RESET).unwrap();
 
     println!(); // Move to the next line after typing is complete
+}
+
+pub fn title_screen() {
+    let mut stdout = io::stdout();
+
+    clear_console(None);
+
+    let message = r"
+        ___                                               __         __                         __ ,    ___
+       -   ---___- _-_-        ,- _~,       _-_ _,,     ,-||-,     ,-||-,   _-_-,             ,-| ~    -   -_,   /\\,/\\,   ,- _~,
+          (' ||      /,       (' /| /          -/  )   ('|||  )   ('|||  )    // ,           ('||/__, (  ~/||   /| || ||   (' /| /
+         ((  ||      || __   ((  ||/=         ~||_<   (( |||--)) (( |||--))   ||/\\         (( |||  | (  / ||   || || ||  ((  ||/=
+        ((   ||     ~||-  -  ((  ||            || \\  (( |||--)) (( |||--))  ~|| <          (( |||==|  \/==||   ||=|= ||  ((  ||
+         (( //       ||===||  ( / |            ,/--||  ( / |  )   ( / |  )    ||/\\          ( / |  ,  /_ _||  ~|| || ||   ( / |
+           -____-   ( \_, |    -____-         _--_-'    -____-     -____-    _-__,\\,         -____/  (  - \\,  |, \\,\\,   -____-
+                          `                  (                                                                 _-
+        ";
+
+    write!(stdout, "{}", message).unwrap();
 }
 
 pub fn reset_cursor(mut stdout: Stdout) -> Stdout {

@@ -1,3 +1,10 @@
 - [ ] Add a settings model, let users update their typing speed (used in simulate_typing)
-- [ ] Add constants for colors
-- [ ]
+- [x] Add constants for colors
+- [ ] Return the player id when creating the player instead of having to load it afterwards.
+- [ ] Model the epics, and stages within epics.
+  - [ ] Validate epic and stage names, "intro", "character_creation", etc.
+  - [ ] Add "advance" method to safely move a player through validated states (i.e., one stage to the next, one epic to the next)
+- [ ] Test that all "update" methods update the updated_at value
+- [ ] Add a title screen / landing page
+  - [ ] Add an ASCII title for THE BOOK GAME
+  - [ ] Let users choose to continue, or create a new save file at the title screen

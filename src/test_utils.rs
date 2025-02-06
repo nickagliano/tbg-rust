@@ -23,8 +23,9 @@ fn generate_test_db_path() -> String {
 
 impl Drop for TestDb {
     fn drop(&mut self) {
-        if Path::new(&self.test_db_path).exists() {
-            fs::remove_file(&self.test_db_path).expect("Failed to delete test database");
+        let full_path = format!("{}/{}", db::SAVE_DIR, &self.test_db_path);
+        if Path::new(&full_path).exists() {
+            fs::remove_file(&full_path).expect("Failed to delete test database");
         }
     }
 }
