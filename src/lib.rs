@@ -9,7 +9,6 @@ pub use terminal_utils::{
 };
 pub mod test_utils;
 use std::error::Error;
-
 use std::io::{self, Write};
 use termion::cursor;
 use termion::event::Key;
@@ -94,6 +93,22 @@ pub fn print_menu<T: std::fmt::Display>(
     }
 }
 
+/// Starts the game, loading an existing player or creating a new one.
+///
+/// This function connects to the database, retrieves or initializes a player,
+/// their game state/savefile, and drops them back in a their current epic and stage.
+///
+/// # Errors
+/// Returns an error if the database connection fails or player loading/saving encounters an issue.
+///
+/// # Example
+/// ```
+/// # use tbg::start_game;
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// start_game()?;
+/// # Ok(())
+/// # }
+/// ```
 pub fn start_game() -> Result<(), Box<dyn Error>> {
     terminal_utils::title_screen();
 

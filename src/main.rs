@@ -4,6 +4,7 @@ mod db;
 use args::parse_args;
 pub use db::connection::get_connection;
 pub use db::save::{delete_save, save_exists};
+mod music;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let game_args = parse_args();
@@ -16,6 +17,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("No existing save found. Starting a new game...");
         }
     }
+
+    // music::manager::play_sound()?; // FIXME: This blocks the thread
 
     start_game()?;
 

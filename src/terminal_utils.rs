@@ -56,12 +56,18 @@ pub fn prompt_enter_to_continue() {
     // Ensure prompt is printed before waiting for input
     io::stdout().flush().unwrap();
 
-    // Set terminal to raw mode
+    // Try to set terminal to raw mode
     let stdin = io::stdin();
-    let mut _stdout = io::stdout().into_raw_mode().unwrap();
+    match io::stdout().into_raw_mode() {
+        Ok(stdout) => stdout,
+        Err(e) => {
+            eprintln!("Error entering raw mode: {}", e);
+            return;
+        }
+    };
 
-    // Wait for any key press
     stdin.keys().next().unwrap().unwrap();
+
     clear_console(None);
 }
 

@@ -6,7 +6,7 @@ use std::fmt;
 use std::str::FromStr; // Alias for rusqlite::Error
 use uuid::Uuid; // For handling timestamps
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Player {
     pub id: i32,
     pub uuid: Uuid,
@@ -16,7 +16,8 @@ pub struct Player {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Debug, Clone)]
+/// Represents the gender of a player in the game.
+#[derive(Debug, Clone, PartialEq)]
 pub enum Gender {
     Male,
     Female,
@@ -24,7 +25,18 @@ pub enum Gender {
 }
 
 impl Gender {
-    // Convert Gender enum to string for database
+    /// Converts the `Gender` enum to a string representation for storing in a database.
+    ///
+    /// # Returns
+    /// A string slice representing the gender as stored in the database.
+    ///
+    /// # Example
+    /// ```
+    /// use tbg::Gender;
+    ///
+    /// let gender = Gender::Male;
+    /// assert_eq!(gender.to_db_string(), "male");
+    /// ```
     pub fn to_db_string(&self) -> &str {
         match self {
             Gender::Male => "male",
@@ -33,7 +45,22 @@ impl Gender {
         }
     }
 
-    // Convert from string to Gender enum
+    /// Converts a user-facing string to a `Gender` enum.
+    ///
+    /// # Arguments
+    /// * `s` - A string slice representing the gender.
+    ///
+    /// # Errors
+    /// Returns `GenderParseError` if the string does not match a valid gender.
+    ///
+    /// # Example
+    /// ```
+    /// use tbg::Gender;
+    ///
+    /// let gender = Gender::from_string("Male");
+    /// assert_eq!(gender.to_db_string(), "male");
+    /// assert_eq!(Gender::from_string("ddnvalid"), Gender::Unspecified);
+    /// ```
     pub fn from_string(s: &str) -> Self {
         match s {
             "Male" => Gender::Male,
@@ -43,7 +70,23 @@ impl Gender {
         }
     }
 
-    // Convert from string to Gender enum
+    /// Converts a database string to a `Gender` enum.
+    ///
+    /// # Arguments
+    /// * `s` - A string slice representing the gender in the database.
+    ///
+    /// # Errors
+    /// Returns `GenderParseError` if the string is not a valid database gender value.
+    ///
+    /// # Example
+    /// ```
+    /// use tbg::Gender;
+    ///
+    /// let gender = Gender::from_db_string("male");
+    /// assert_eq!(gender, Gender::Male);
+    ///
+    /// assert_eq!(Gender::from_string("Invalid"), Gender::Unspecified);
+    /// ```
     pub fn from_db_string(s: &str) -> Self {
         match s {
             "male" => Gender::Male,
@@ -57,6 +100,24 @@ impl Gender {
 impl FromStr for Gender {
     type Err = GenderParseError;
 
+    /// Parses a string into a `Gender` enum.
+    ///
+    /// # Arguments
+    /// * `s` - A string slice representing the gender.
+    ///
+    /// # Errors
+    /// Returns `GenderParseError` if the string is invalid.
+    ///
+    /// # Example
+    /// ```
+    /// use tbg::Gender;
+    /// use std::str::FromStr;
+    ///
+    /// let gender = Gender::from_str("male");
+    /// assert_eq!(gender.unwrap(), Gender::Male);
+    ///
+    /// assert!(Gender::from_str("invalid").is_err());
+    /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.trim().to_lowercase().as_str() {
             "male" => Ok(Gender::Male),
@@ -67,14 +128,25 @@ impl FromStr for Gender {
     }
 }
 
+/// Represents an error when parsing a gender string.
 #[derive(Debug)]
 pub enum GenderParseError {
+    /// Represents an invalid gender input.
     InvalidGender(String),
 }
 
 impl std::error::Error for GenderParseError {}
 
 impl fmt::Display for GenderParseError {
+    /// Formats the `Gender` enum as a human-readable string.
+    ///
+    /// # Example
+    /// ```
+    /// use tbg::Gender;
+    ///
+    /// let gender = Gender::Female;
+    /// assert_eq!(gender.to_string(), "Female");
+    /// ```
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Invalid gender: {:?}", self)
     }
