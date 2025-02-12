@@ -1,9 +1,10 @@
+use crate::game_engine::game_engine::GameEngine;
+use crate::game_engine::game_event::GameEvent;
 use std::io::{self, Stdout, Write};
+use std::sync::mpsc;
 use std::{thread, time::Duration};
-use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 use termion::{clear, color, cursor};
-
 struct Colors;
 impl Colors {
     const ACTION_COLOR: color::Fg<color::Blue> = color::Fg(color::Blue);
@@ -15,7 +16,8 @@ pub fn get_input() -> String {
     let mut stdout = io::stdout();
     let mut user_input = String::new();
 
-    // Show the input prompt
+    let _raw = io::stdout().into_raw_mode().ok();
+
     write!(
         stdout,
         "\n{}>{} {}",
@@ -26,12 +28,12 @@ pub fn get_input() -> String {
     .unwrap();
     stdout.flush().unwrap();
 
-    std::io::stdin().read_line(&mut user_input).unwrap();
+    io::stdin().read_line(&mut user_input).unwrap();
 
     write!(stdout, "{}", color::Fg(color::Reset)).unwrap();
-
     clear_console(None);
-    return user_input.trim().to_string();
+
+    user_input.trim().to_string()
 }
 
 // NOTE: The stdout parameter is only used for tests, in order simulate the terminal
@@ -49,24 +51,15 @@ pub fn clear_console(stdout: Option<&mut dyn Write>) {
     write!(stdout, "{}{}", cursor::Goto(1, 1), cursor::Hide).unwrap();
 }
 
-pub fn prompt_enter_to_continue() {
-    let prompt = "Press any key to continue... ";
+pub fn prompt_enter_to_continue(rx: &mpsc::Receiver<GameEvent>) {
+    let prompt = "Press enter to continue... ";
     action_required(&format!("\n{}", prompt));
 
     // Ensure prompt is printed before waiting for input
     io::stdout().flush().unwrap();
 
-    // Try to set terminal to raw mode
-    let stdin = io::stdin();
-    match io::stdout().into_raw_mode() {
-        Ok(stdout) => stdout,
-        Err(e) => {
-            eprintln!("Error entering raw mode: {}", e);
-            return;
-        }
-    };
-
-    stdin.keys().next().unwrap().unwrap();
+    // Ensure prompt is printed before waiting for input
+    io::stdout().flush().unwrap();
 
     clear_console(None);
 }
@@ -137,4 +130,40 @@ pub fn title_screen() {
 pub fn reset_cursor(mut stdout: Stdout) -> Stdout {
     write!(stdout, "{}\n", cursor::Goto(1, 1)).unwrap();
     return stdout;
+}
+
+pub fn print_menu<T: std::fmt::Display>(
+    engine: &GameEngine,
+    message: &str,
+    options: &Vec<T>,
+    selected_index: usize,
+    use_simulate_typing: bool,
+) {
+    clear_console(None);
+
+    let mut stdout = io::stdout();
+
+    if use_simulate_typing {
+        simulate_typing(&message);
+    } else {
+        p(&format!("{}", message))
+    }
+
+    stdout = reset_cursor(stdout);
+
+    // Loop through options and highlight the selected one
+    for (i, option) in options.iter().enumerate() {
+        if i == selected_index {
+            // Highlight the selected option
+            action_required(&format!("> {}", option))
+        } else {
+            // Print unselected options without extra indentation
+            action_required(&format!("  {}", option))
+        }
+
+        // Move cursor back to the beginning of the line after printing
+        // FIXME: need to abstract this into reset_cursor. target + padding or something...
+        write!(stdout, "{}\n", cursor::Goto(1, i as u16 + 2)).unwrap();
+        stdout.flush().unwrap(); // Flush after each line to update the display immediately
+    }
 }
