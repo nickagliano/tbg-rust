@@ -1,7 +1,9 @@
 pub mod db;
 pub mod models;
+pub mod music;
 pub use models::game_state::GameState;
 pub use models::player::{Gender, Player};
+pub use music::music_player::MusicPlayer;
 pub mod terminal_utils;
 pub use terminal_utils::{
     action_required, clear_console, get_input, p, prompt_enter_to_continue, reset_cursor,
@@ -105,14 +107,17 @@ pub fn print_menu<T: std::fmt::Display>(
 /// ```
 /// # use tbg::start_game;
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// start_game()?;
+/// start_game(tbg::music::music_player::MusicPlayer::new())?;
 /// # Ok(())
 /// # }
 /// ```
-pub fn start_game() -> Result<(), Box<dyn Error>> {
+pub fn start_game(dj: MusicPlayer) -> Result<(), Box<dyn Error>> {
     terminal_utils::title_screen();
 
     prompt_enter_to_continue();
+
+    // dj.toggle_music();
+    dj.stop_music_thread();
 
     // Open the SQLite connection using the get_connection function
     // This will create the players table if it doesn't already exist

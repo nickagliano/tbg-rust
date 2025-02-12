@@ -4,7 +4,7 @@ mod db;
 use args::parse_args;
 pub use db::connection::get_connection;
 pub use db::save::{delete_save, save_exists};
-mod music;
+use tbg::music::music_player::MusicPlayer;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let game_args = parse_args();
@@ -18,9 +18,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // music::manager::play_sound()?; // FIXME: This blocks the thread
+    // TODO: Handle this better!
+    // TODO: Need a new construct, GameEngine
+    // Start game should probably be called through GameEngine.
+    // GameEngine should receive the dj
+    let dj = MusicPlayer::new();
+    dj.start_music_thread();
 
-    start_game()?;
+    start_game(dj)?;
 
     Ok(())
 }

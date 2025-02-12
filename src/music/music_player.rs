@@ -1,7 +1,73 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
+use std::{
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
+    },
+    thread,
+    time::Duration,
+};
+
+pub struct MusicPlayer {
+    music_playing: Arc<AtomicBool>,
+    running: Arc<AtomicBool>,
+}
+
+impl MusicPlayer {
+    pub fn new() -> Self {
+        MusicPlayer {
+            music_playing: Arc::new(AtomicBool::new(true)),
+            running: Arc::new(AtomicBool::new(true)),
+        }
+    }
+
+    pub fn start_music_thread(&self) {
+        let music_playing = Arc::clone(&self.music_playing);
+        let running = Arc::clone(&self.running);
+
+        thread::spawn(move || {
+            while running.load(Ordering::SeqCst) {
+                if music_playing.load(Ordering::SeqCst) {
+                    // println!("🎵 Playing sound...");
+                    let _res = play_sound();
+                } else {
+                    println!("Music paused...");
+                    thread::sleep(Duration::from_millis(100)); // Sleep when music is off
+                }
+            }
+            println!("Music thread has exited.");
+        });
+    }
+
+    pub fn toggle_music(&self) {
+        let currently_playing = self.music_playing.load(Ordering::SeqCst);
+        self.music_playing
+            .store(!currently_playing, Ordering::SeqCst);
+        println!(
+            "Music is now {}.",
+            if currently_playing {
+                "stopped"
+            } else {
+                "playing"
+            }
+        );
+    }
+
+    pub fn stop_music_thread(&self) {
+        self.running.store(false, Ordering::SeqCst); // Stop the music thread
+        self.music_playing.store(false, Ordering::SeqCst); // Stop playing music
+    }
+
+    // FIXME: See if there's a better way to define the cpal Stream with the constructor
+    //
+    // Then maybe I can figure out how to toggle, change tracks, etc.
+    //
+    // pub fn play(&self) {
+    //     if let Some(stream) = &self.stream {
+    //         stream.play().expect("Failed to play stream");
+    //     }
+    // }
+}
 
 fn note_freq(note: &str) -> f32 {
     match note {
@@ -361,16 +427,16 @@ pub fn play_sound() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-// 🎵 Generate a square wave (used for melody)
-fn generate_square_wave(sample_counter: u64, freq: f32, sample_rate: f32) -> f32 {
-    if (sample_counter as f32 * freq * 2.0 * std::f32::consts::PI / sample_rate).sin() > 0.0 {
-        1.0
-    } else {
-        -1.0
-    }
-}
+// Generate a square wave (used for melody, but is harsher than pulse wave)
+// fn generate_square_wave(sample_counter: u64, freq: f32, sample_rate: f32) -> f32 {
+//     if (sample_counter as f32 * freq * 2.0 * std::f32::consts::PI / sample_rate).sin() > 0.0 {
+//         1.0
+//     } else {
+//         -1.0
+//     }
+// }
 
-// 🎵 Generate a triangle wave (used for bass)
+// Generate a triangle wave (used for bass)
 fn generate_triangle_wave(sample_counter: u64, freq: f32, sample_rate: f32) -> f32 {
     let t = (sample_counter as f32 * freq / sample_rate) % 1.0;
     (2.0 * (t - 0.5)).abs() * 2.0 - 1.0
