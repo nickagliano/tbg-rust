@@ -1,3 +1,6 @@
+- [ ] Catch up on tests!
+  - [ ] Test everything now that crossterm is implemented
+  - [ ] Music tests
 - [ ] Add a settings model, let users update their typing speed (used in simulate_typing)
 - [x] Add constants for colors
 - [ ] Return the player id when creating the player instead of having to load it afterwards.

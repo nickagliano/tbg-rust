@@ -1,21 +1,20 @@
 mod args;
 mod db;
+mod dev;
 mod game_engine;
 pub mod models;
 pub mod music;
 pub mod terminal_utils;
-mod thread_demo;
 use args::parse_args;
 pub use db::connection::get_connection;
 pub use db::save::{delete_save, save_exists};
 use game_engine::game_engine::GameEngine;
-use thread_demo::run_demo;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let game_args = parse_args();
 
-    if game_args.thread_demo {
-        run_demo::run().expect("Thread demo failed");
+    if game_args.dev {
+        dev::dev::run();
         return Ok(()); // Early exit!
     }
 

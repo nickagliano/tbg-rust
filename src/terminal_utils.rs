@@ -157,23 +157,6 @@ pub fn simulate_typing(message: &str) {
     execute!(stdout, Show).expect("Failed to show cursor");
 }
 
-// pub fn title_screen() {
-//     clear_console(None);
-
-//     let message = r"
-//         ___                                               __         __                         __ ,    ___
-//        -   ---___- _-_-        ,- _~,       _-_ _,,     ,-||-,     ,-||-,   _-_-,             ,-| ~    -   -_,   /\\,/\\,   ,- _~,
-//           (' ||      /,       (' /| /          -/  )   ('|||  )   ('|||  )    // ,           ('||/__, (  ~/||   /| || ||   (' /| /
-//          ((  ||      || __   ((  ||/=         ~||_<   (( |||--)) (( |||--))   ||/\\         (( |||  | (  / ||   || || ||  ((  ||/=
-//         ((   ||     ~||-  -  ((  ||            || \\  (( |||--)) (( |||--))  ~|| <          (( |||==|  \/==||   ||=|= ||  ((  ||
-//          (( //       ||===||  ( / |            ,/--||  ( / |  )   ( / |  )    ||/\\          ( / |  ,  /_ _||  ~|| || ||   ( / |
-//            -____-   ( \_, |    -____-         _--_-'    -____-     -____-    _-__,\\,         -____/  (  - \\,  |, \\,\\,   -____-
-//                                             (                                                                 _-
-//     ";
-
-//     draw_window(message).expect("Failed to print title screen");
-// }
-
 pub fn title_screen() {
     clear_console(None);
 
@@ -317,23 +300,23 @@ pub fn draw_window(content: &str) -> io::Result<()> {
     let height = height.max(5);
 
     // Create borders
-    // let top_border = format!("┏{}┓", "━".repeat((width - 2) as usize));
-    // let bottom_border = format!("┗{}┛", "━".repeat((width - 2) as usize));
-    // let empty_line = format!("┃{}┃", " ".repeat((width - 2) as usize));
+    let top_border = format!("┏{}┓", "━".repeat((width - 2) as usize));
+    let bottom_border = format!("┗{}┛", "━".repeat((width - 2) as usize));
+    let empty_line = format!("┃{}┃", " ".repeat((width - 2) as usize));
     // TODO: Maybe use these "fantasy" style borders
-    let repeat_count = (width - 2) / 3; // Required because the fantasy border is 3 chars long
-    let remainder = (width - 2) % 3; // Required because the fantasy border is 3 chars long
-    let top_border = format!(
-        "╭{}{}╮",
-        "╼◈╾".repeat(repeat_count as usize),
-        "━".repeat(remainder as usize)
-    );
-    let bottom_border = format!(
-        "╰{}{}╯",
-        "╼◈╾".repeat(repeat_count as usize),
-        "━".repeat(remainder as usize)
-    );
-    let empty_line = format!("║{}║", " ".repeat((width - 2) as usize));
+    // let repeat_count = (width - 2) / 3; // Required because the fantasy border is 3 chars long
+    // let remainder = (width - 2) % 3; // Required because the fantasy border is 3 chars long
+    // let top_border = format!(
+    //     "╭{}{}╮",
+    //     "╼◈╾".repeat(repeat_count as usize),
+    //     "━".repeat(remainder as usize)
+    // );
+    // let bottom_border = format!(
+    //     "╰{}{}╯",
+    //     "╼◈╾".repeat(repeat_count as usize),
+    //     "━".repeat(remainder as usize)
+    // );
+    // let empty_line = format!("║{}║", " ".repeat((width - 2) as usize));
 
     // Regex to remove ANSI escape codes (including color codes and resets)
     let color_code_re = Regex::new(r"\x1b\[[0-9;]*m").unwrap();

@@ -136,9 +136,15 @@ impl GameEngine {
 
         terminal_utils::simulate_typing("Now, let's start the adventure!");
         terminal_utils::prompt_enter_to_continue();
+
+        // TODO: Implement map piece here.
+
         Ok(())
     }
 
+    // FIXME: Abstract out this select gender logic to be reusable as a "menu_select" or something.
+    //        - like buying things from a shop, other character configuration, etc.
+    //        - selecting a move in a battle will be similar
     pub fn select_gender(&self) -> Gender {
         let mut stdout = io::stdout();
         enable_raw_mode().expect("Failed to enable raw mode");
