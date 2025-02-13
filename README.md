@@ -44,7 +44,7 @@ tbg/
 ├── saves/                 # For storing save files (sqlite databases)
 ├── src/
 │   ├── db/                # Database connection and management
-│   ├── models/            # Game data structures (e.g., Player, GameState)  
+│   ├── models/            # Game data structures (e.g., Player, GameState)
 │   ├── args.rs            # For parsing command-line input (mostly for development purposes)
 │   ├── lib.rs             # Game logic and core functionality
 │   ├── main.rs            # Entry point of the game
@@ -57,7 +57,7 @@ tbg/
 
 ## Dependencies
 This project relies on the following Rust crates:
-- `termion` – for handling terminal interactions
+- `crossterm` – for handling terminal interactions
 - `rusqlite` – for SQLite database support
 
 ## Contributing
