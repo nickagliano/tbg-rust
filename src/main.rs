@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let game_args = parse_args();
 
     if game_args.thread_demo {
-        run_demo::run();
+        run_demo::run().expect("Thread demo failed");
         return Ok(()); // Early exit!
     }
 

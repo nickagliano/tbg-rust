@@ -6,6 +6,5 @@ pub enum GameEvent {
     ToggleMusic,
     PlayMusic,
     Continue,
-    Typing(Key),
     Other(Key),
 }

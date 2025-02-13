@@ -1,7 +1,4 @@
-use crate::game_engine::game_engine::GameEngine;
-use crate::game_engine::game_event::GameEvent;
 use std::io::{self, Stdout, Write};
-use std::sync::mpsc;
 use std::{thread, time::Duration};
 use termion::raw::IntoRawMode;
 use termion::{clear, color, cursor};
@@ -51,7 +48,7 @@ pub fn clear_console(stdout: Option<&mut dyn Write>) {
     write!(stdout, "{}{}", cursor::Goto(1, 1), cursor::Hide).unwrap();
 }
 
-pub fn prompt_enter_to_continue(rx: &mpsc::Receiver<GameEvent>) {
+pub fn prompt_enter_to_continue() {
     let prompt = "Press enter to continue... ";
     action_required(&format!("\n{}", prompt));
 
@@ -133,7 +130,6 @@ pub fn reset_cursor(mut stdout: Stdout) -> Stdout {
 }
 
 pub fn print_menu<T: std::fmt::Display>(
-    engine: &GameEngine,
     message: &str,
     options: &Vec<T>,
     selected_index: usize,

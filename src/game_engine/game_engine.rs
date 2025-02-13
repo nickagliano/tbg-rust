@@ -109,9 +109,6 @@ impl GameEngine {
                 Ok(GameEvent::Continue) => {
                     println!("Continue");
                 }
-                Ok(GameEvent::Typing(key)) => {
-                    print!("Unhandled key: {:?}", key);
-                }
                 Ok(GameEvent::Other(key)) => {
                     println!("Unhandled key: {:?}", key);
                 }
@@ -131,7 +128,7 @@ impl GameEngine {
     pub fn start_game(&mut self) -> Result<(), Box<dyn Error>> {
         terminal_utils::title_screen();
 
-        prompt_enter_to_continue(&self.event_rx);
+        prompt_enter_to_continue();
 
         // Open the SQLite connection using the get_connection function
         // This will create the players table if it doesn't already exist
@@ -163,7 +160,7 @@ impl GameEngine {
                 is_new_player = true; // New player is being created
 
                 simulate_typing("Welcome to the wonderful world of The Book Game!");
-                prompt_enter_to_continue(&self.event_rx);
+                prompt_enter_to_continue();
 
                 simulate_typing("What is your name, adventurer?");
 
@@ -204,12 +201,12 @@ impl GameEngine {
             .unwrap()
             .unwrap();
 
-        prompt_enter_to_continue(&self.event_rx);
+        prompt_enter_to_continue();
 
         // Give special message if player is returning, but never completed character creation
         if !is_new_player && game_state.current_stage == "character_creation" {
             simulate_typing("Looks like you're still creating your character.");
-            prompt_enter_to_continue(&self.event_rx);
+            prompt_enter_to_continue();
         }
 
         if game_state.current_stage == "character_creation" {
@@ -229,7 +226,7 @@ impl GameEngine {
 
             simulate_typing(&format!("\nYou selected: {}", player.gender.to_string()));
 
-            prompt_enter_to_continue(&self.event_rx);
+            prompt_enter_to_continue();
         }
 
         assert!(game_state.current_stage == "book_tutorial".to_string());
@@ -238,14 +235,9 @@ impl GameEngine {
             "Amazing.\n\nNow that we have introductions out of the way, let me show you some books.",
         );
 
-        prompt_enter_to_continue(&self.event_rx);
+        prompt_enter_to_continue();
 
         Ok(())
-    }
-
-    /// Programmatically send the `q` key event to stop the input listener
-    pub fn stop_input_listener(&self) {
-        let _ = self.event_tx.send(GameEvent::Typing(Key::Char('q'))); // Send 'q' to quit
     }
 
     fn select_gender(&mut self) -> Gender {
@@ -262,7 +254,7 @@ impl GameEngine {
 
         let message = "Please select your gender:";
 
-        print_menu(self, message, &options, selected_index, true);
+        print_menu(message, &options, selected_index, true);
 
         for c in stdin.keys() {
             match c.unwrap() {
@@ -284,7 +276,7 @@ impl GameEngine {
             }
 
             // Pass use_simulate_typing to false so it doesn't re-type when user updates selection
-            print_menu(self, message, &options, selected_index, false);
+            print_menu(message, &options, selected_index, false);
         }
 
         // Return a default gender if the loop ends unexpectedly
