@@ -9,6 +9,8 @@ use std::io::{self, Write};
 struct App {
     counter: i32,
     exit: bool,
+    input_mode: bool,
+    player_name: String,
 }
 
 impl App {
@@ -16,6 +18,8 @@ impl App {
         Self {
             counter: 0,
             exit: false,
+            input_mode: false,
+            player_name: String::new(),
         }
     }
 
@@ -38,18 +42,39 @@ impl App {
         execute!(stdout, cursor::MoveTo(0, 0))?;
         writeln!(stdout, "Counter App\r")?;
         writeln!(stdout, "Value: {}\r", self.counter)?;
-        writeln!(stdout, "Use Left/Right to change, Q to quit\r")?;
+        writeln!(
+            stdout,
+            "Use Left/Right to change, Q to quit, I for input mode\r"
+        )?;
+        if self.input_mode {
+            writeln!(stdout, "Enter Name: {}\r", self.player_name)?;
+        } else {
+            writeln!(stdout, "Player: {}\r", self.player_name)?;
+        }
         stdout.flush()
     }
 
     fn handle_events(&mut self) -> io::Result<()> {
         if event::poll(std::time::Duration::from_millis(100))? {
             if let Event::Key(key_event) = event::read()? {
-                match key_event.code {
-                    KeyCode::Char('q') => self.exit = true,
-                    KeyCode::Left => self.counter -= 1,
-                    KeyCode::Right => self.counter += 1,
-                    _ => {}
+                if self.input_mode {
+                    match key_event.code {
+                        KeyCode::Enter => self.input_mode = false,
+                        KeyCode::Backspace => {
+                            // FIXME: This doesn't work.. :()
+                            self.player_name.pop();
+                        }
+                        KeyCode::Char(c) => self.player_name.push(c),
+                        _ => {}
+                    }
+                } else {
+                    match key_event.code {
+                        KeyCode::Char('q') => self.exit = true,
+                        KeyCode::Left => self.counter -= 1,
+                        KeyCode::Right => self.counter += 1,
+                        KeyCode::Char('i') => self.input_mode = true,
+                        _ => {}
+                    }
                 }
             }
         }
