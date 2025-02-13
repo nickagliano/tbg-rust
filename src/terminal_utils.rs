@@ -17,6 +17,12 @@ use std::{
     time::Duration,
 };
 
+// TODO: Set FrameType in settings
+// pub enum FrameType {
+//     Normal,
+//     Fantasy,
+// }
+
 struct Colors;
 impl Colors {
     const ACTION_COLOR: Color = Color::DarkCyan;
@@ -299,6 +305,9 @@ pub fn print_menu<T: std::fmt::Display>(
     Ok(())
 }
 
+// FIXME: add a FrameType setting, use instead of hard-coding "NORMAL" borders
+//        - DO NOT want to query this from the GameState every time.
+//        - Want to load this at start of game, and only fetch if settings are updated.
 pub fn draw_window(content: &str) -> io::Result<()> {
     let mut stdout = io::stdout();
 
@@ -308,13 +317,23 @@ pub fn draw_window(content: &str) -> io::Result<()> {
     let height = height.max(5);
 
     // Create borders
-    let top_border = format!("┏{}┓", "━".repeat((width - 2) as usize));
-    let bottom_border = format!("┗{}┛", "━".repeat((width - 2) as usize));
-    let empty_line = format!("┃{}┃", " ".repeat((width - 2) as usize));
+    // let top_border = format!("┏{}┓", "━".repeat((width - 2) as usize));
+    // let bottom_border = format!("┗{}┛", "━".repeat((width - 2) as usize));
+    // let empty_line = format!("┃{}┃", " ".repeat((width - 2) as usize));
     // TODO: Maybe use these "fantasy" style borders
-    // let top_border = format!("╭{}╮", "╼◈╾".repeat(((width - 2) / 3) as usize));
-    // let bottom_border = format!("╰{}╯", "╼◈╾".repeat(((width - 2) / 3) as usize));
-    // let empty_line = format!("║{}║", " ".repeat((width - 2) as usize));
+    let repeat_count = (width - 2) / 3; // Required because the fantasy border is 3 chars long
+    let remainder = (width - 2) % 3; // Required because the fantasy border is 3 chars long
+    let top_border = format!(
+        "╭{}{}╮",
+        "╼◈╾".repeat(repeat_count as usize),
+        "━".repeat(remainder as usize)
+    );
+    let bottom_border = format!(
+        "╰{}{}╯",
+        "╼◈╾".repeat(repeat_count as usize),
+        "━".repeat(remainder as usize)
+    );
+    let empty_line = format!("║{}║", " ".repeat((width - 2) as usize));
 
     // Regex to remove ANSI escape codes (including color codes and resets)
     let color_code_re = Regex::new(r"\x1b\[[0-9;]*m").unwrap();
