@@ -13,3 +13,6 @@ uuid = { version = "1.3", features = ["v4"] }
 chrono = "0.4"                                                      # For datetimes in the created_at and updated_at columns
 cpal = "0.15"                                                       # for music
 rand = "0.8"                                                        # used in music and probably other stuff soon
+color-eyre = "0.6.3"
+crossterm = "0.28.1"
+ratatui = "0.29.0"
