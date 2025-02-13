@@ -4,9 +4,12 @@ use crate::models::player::Gender;
 use crate::models::player::Player;
 use crate::music::music_player::MusicPlayer;
 use crate::terminal_utils;
+use crossterm::cursor::{Hide, Show};
 use crossterm::event::{self, Event, KeyCode};
+use crossterm::execute;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use std::error::Error;
+use std::io;
 use std::time::Duration;
 
 pub struct GameEngine {
@@ -67,7 +70,7 @@ impl GameEngine {
                 // New player is being created
                 is_new_player = true;
 
-                terminal_utils::simulate_typing("Welcome to the adventure!");
+                terminal_utils::simulate_typing("Welcome to the wonderful world of The Book Game!");
 
                 terminal_utils::prompt_enter_to_continue();
 
@@ -131,12 +134,13 @@ impl GameEngine {
             terminal_utils::prompt_enter_to_continue();
         }
 
-        terminal_utils::simulate_typing("Now, let’s start the adventure!");
+        terminal_utils::simulate_typing("Now, let's start the adventure!");
         terminal_utils::prompt_enter_to_continue();
         Ok(())
     }
 
     pub fn select_gender(&self) -> Gender {
+        let mut stdout = io::stdout();
         enable_raw_mode().expect("Failed to enable raw mode");
 
         let options = vec![
@@ -147,7 +151,11 @@ impl GameEngine {
         let message = "Please select your gender:";
         let mut selected_index = 0;
 
-        terminal_utils::print_menu(message, &options, selected_index, true);
+        // Hide the cursor before selection starts
+        execute!(stdout, Hide).expect("Cursor failed to hide");
+
+        terminal_utils::print_menu(message, &options, selected_index, true)
+            .expect("Printing gender menu failed");
 
         loop {
             // Block and wait for a key event
@@ -165,19 +173,22 @@ impl GameEngine {
                     }
                     KeyCode::Enter => {
                         disable_raw_mode().expect("Failed to disable raw mode");
+                        execute!(stdout, Show).expect("Cursor failed to show");
                         terminal_utils::clear_console(None);
                         return Gender::from_string(&options[selected_index]);
                     }
                     _ => {
                         // FIXME: Handle this better? Re-pick gender?
                         terminal_utils::clear_console(None);
+                        execute!(stdout, Show).expect("Cursor failed to show");
                         return Gender::Unspecified;
                     }
                 }
 
                 // Redraw the menu after every key press to update the selection
                 // Set use_simulate_typing to false so it doesn't re-type when user updates selection
-                terminal_utils::print_menu(message, &options, selected_index, false);
+                terminal_utils::print_menu(message, &options, selected_index, false)
+                    .expect("Printing menu failed");
             }
         }
     }

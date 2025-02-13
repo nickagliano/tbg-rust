@@ -859,6 +859,7 @@ dependencies = [
  "cpal",
  "crossterm",
  "rand",
+ "regex",
  "rusqlite",
  "uuid",
 ]
