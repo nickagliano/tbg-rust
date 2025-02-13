@@ -190,65 +190,27 @@ pub fn title_screen() {
 }
 
 pub fn draw_title_with_gradient(message: &str) -> String {
-    // Split the message into lines
     let lines: Vec<&str> = message.split('\n').collect();
+    let mut output = String::new();
 
-    let mut formatted_message = String::new();
-
-    // Generate gradient colors and apply to each line
     for (i, line) in lines.iter().enumerate() {
         let gradient_color = get_gradient_color(i, lines.len());
-
-        // Convert the RGB color to a 256-color index
-        if let Color::Rgb { r, g, b } = gradient_color {
-            let color_code = rgb_to_256_color(r, g, b);
-
-            // Format the line with the 256-color code
-            formatted_message.push_str(&format!(
-                "\x1b[38;5;{}m{}\x1b[0m\n", // Applying the gradient color
-                color_code, line
-            ));
-        }
+        let color_code = format!(
+            "\x1b[38;2;{};{};{}m",
+            gradient_color.0, gradient_color.1, gradient_color.2
+        );
+        output.push_str(&format!("{}{}\x1b[0m\n", color_code, line));
     }
 
-    formatted_message
+    output
 }
 
-fn get_gradient_color(index: usize, total_lines: usize) -> Color {
+// Returns an RGB tuple
+fn get_gradient_color(index: usize, total_lines: usize) -> (u8, u8, u8) {
     let red = (index as f32 / total_lines as f32 * 255.0).round() as u8;
     let green = ((total_lines as f32 - index as f32) / total_lines as f32 * 255.0).round() as u8;
-    Color::Rgb {
-        r: red,
-        g: green,
-        b: 128,
-    } // RGB values for a simple gradient
-}
 
-fn rgb_to_256_color(r: u8, g: u8, b: u8) -> u8 {
-    // Convert RGB to a 256-color code based on the closest match
-    let palette = [
-        (0, 0, 0),
-        (255, 0, 0),
-        (0, 255, 0),
-        (0, 0, 255), // Some basic colors
-                     // Add more color palette entries as needed for a wider range of matches
-    ];
-
-    let mut closest_index = 0;
-    let mut min_distance = i32::MAX;
-
-    for (i, &(pr, pg, pb)) in palette.iter().enumerate() {
-        let distance = (pr as i32 - r as i32).pow(2)
-            + (pg as i32 - g as i32).pow(2)
-            + (pb as i32 - b as i32).pow(2);
-
-        if distance < min_distance {
-            min_distance = distance;
-            closest_index = i as u8; // Store the index of the closest match
-        }
-    }
-
-    closest_index
+    (red, green, 128) // Return an RGB tuple
 }
 
 pub fn reset_cursor(stdout: &mut dyn Write) {
@@ -349,6 +311,10 @@ pub fn draw_window(content: &str) -> io::Result<()> {
     let top_border = format!("┏{}┓", "━".repeat((width - 2) as usize));
     let bottom_border = format!("┗{}┛", "━".repeat((width - 2) as usize));
     let empty_line = format!("┃{}┃", " ".repeat((width - 2) as usize));
+    // TODO: Maybe use these "fantasy" style borders
+    // let top_border = format!("╭{}╮", "╼◈╾".repeat(((width - 2) / 3) as usize));
+    // let bottom_border = format!("╰{}╯", "╼◈╾".repeat(((width - 2) / 3) as usize));
+    // let empty_line = format!("║{}║", " ".repeat((width - 2) as usize));
 
     // Regex to remove ANSI escape codes (including color codes and resets)
     let color_code_re = Regex::new(r"\x1b\[[0-9;]*m").unwrap();
